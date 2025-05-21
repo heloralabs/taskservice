@@ -49,6 +49,20 @@ async function createTask(req, res) {
     }
 }
 
+async function getTaskById(req, res) {
+    const { id } = req.params;
+    try {
+        const task = await db('tasks').where({ id }).first();
+        if (!task) {
+            return res.status(404).json({ error: 'Task not found' });
+        }
+        res.status(200).json(task);
+    } catch (error) {
+        console.error('getTaskById: Error:', error.message);
+        res.status(500).json({ error: 'Failed to retrieve task' });
+    }
+}
+
 async function deleteTask(req, res) {
     const { id } = req.params;
     try {
@@ -68,5 +82,6 @@ async function deleteTask(req, res) {
 module.exports = {
     getAllTasks,
     createTask,
-    deleteTask
+    deleteTask,
+    getTaskById
 };
