@@ -49,8 +49,24 @@ async function createTask(req, res) {
     }
 }
 
+async function deleteTask(req, res) {
+    const { id } = req.params;
+    try {
+        const task = await db('tasks').where({ id }).first();
+        //First do a check to see if the task is found
+        if (!task) {
+            return res.status(404).json({ error: 'Task not found' });
+        }
+        //Task with the id specified exists, now deleted it.
+        await db('tasks').where({ id }).del();
+        res.status(200).json({ message: 'Task deleted' });
+    } catch (error) {
+        res.status(500).json({ error: 'Task deletion failed' });
+    }
+}
 
 module.exports = {
     getAllTasks,
-    createTask
+    createTask,
+    deleteTask
 };

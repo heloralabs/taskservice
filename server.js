@@ -9,6 +9,7 @@ app.use(express.json());
 //List all of the supported APIs. 
 app.get('/tasks/getAll', tasksHandler.getAllTasks);
 app.post('/tasks', tasksHandler.createTask);
+app.delete('/tasks/:id', tasksHandler.deleteTask);
 
 // Centralized Error Handling (Example)
 app.use((err, req, res, next) => {
