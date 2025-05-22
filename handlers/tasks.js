@@ -63,6 +63,43 @@ async function getTaskById(req, res) {
     }
 }
 
+async function updateTask(req, res) {
+    const { id } = req.params;
+    const { title, description, status } = req.body;
+
+    //Validate that at least one field available for updating.
+    if (!title && description === undefined && !status) {
+        return res.status(400).json({ error: 'At least one field (title, description, status) is required' });
+    }
+
+    //Similar to create task, the status field value must be either pending/completed.
+    if (status && ![STATUS.PENDING, STATUS.COMPLETED].includes(status)) {
+        return res.status(400).json({ error: 'Status must be "pending" or "completed"' });
+    }
+    try {
+        const task = await db('tasks').where({ id }).first();
+
+        //check if the provided ID exists in the table
+        if (!task) {
+            return res.status(404).json({ error: 'Task not found' });
+        }
+        const updates = {};
+        if (title) updates.title = title;
+        if (description !== undefined) updates.description = description;
+        if (status) updates.status = status;
+        updates.updatedAt = new Date().toISOString();
+        await db('tasks').where({ id }).update(updates);
+        const updatedTask = await db('tasks').where({ id }).first();
+        res.status(200).json(updatedTask);
+    } catch (error) {
+        console.error('updateTask: Error:', error.message);
+        if (error.message.includes('SQLITE_CONSTRAINT: UNIQUE')) {
+            return res.status(409).json({ error: 'Task with this title already exists' });
+        }
+        res.status(500).json({ error: 'Task update failed' });
+    }
+}
+
 async function deleteTask(req, res) {
     const { id } = req.params;
     try {
@@ -83,5 +120,6 @@ module.exports = {
     getAllTasks,
     createTask,
     deleteTask,
-    getTaskById
+    getTaskById,
+    updateTask
 };
