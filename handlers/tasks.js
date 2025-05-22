@@ -9,6 +9,7 @@ async function getAllTasks(req, res) {
         const tasks = await db('tasks').select();
         res.status(200).json(tasks);
     } catch (error) {
+        console.error('getAllTasks: Failed to get all tasks', error.message);
         res.status(500).json({ error: 'Failed to retrieve tasks' });
     }
 }
@@ -17,12 +18,15 @@ async function createTask(req, res) {
     const { title, description, status } = req.body;
 
     if (!title) {
+
+        console.log('createTask: Missing title');
         return res.status(400).json({ error: 'Title is required' });
     }
 
     //do a check on the status field. The only values allowed are 'pending','completed'
     if (status && ![STATUS.PENDING, STATUS.COMPLETED].includes(status)) {
-        //return an error if the field is something else.
+        //return an error if the field is neither of the expected values.
+        console.log('createTask: status field is invalid:', status);
         return res.status(400).json({ error: 'Status must be "pending" or "completed"' });
     }
 
@@ -36,13 +40,23 @@ async function createTask(req, res) {
         updatedAt: timestamp
     };
 
+    console.log('createTask: inserting task:', task);
     try {
-        const [id] = await db('tasks').insert(task);
+
+        
+        const [{ id }] = await db('tasks').insert(task).returning('id');
         const createdTask = await db('tasks').where({ id }).first();
+        console.log('createTask: ', createdTask);
+
+        if (!createdTask) {
+            console.warn('createTask: Failed to retrieve created task for id:', id);
+            return res.status(500).json({ error: 'Failed to retrieve created task' });
+        }
+        console.log('createTask: task created with id: ', id);
         res.status(201).json(createdTask);
     } catch (error) {
-        console.log('Error message: ', error)
-        if (error.message.includes('SQLITE_CONSTRAINT: UNIQUE')) {
+        console.error('createTask: Error message: ', error.message)
+        if (error.message.includes('unique constraint') || error.message.includes('duplicate key')) {
             return res.status(409).json({ error: 'Task with this title already exists' });
         }
         res.status(500).json({ error: 'Task creation failed' });
@@ -93,7 +107,7 @@ async function updateTask(req, res) {
         res.status(200).json(updatedTask);
     } catch (error) {
         console.error('updateTask: Error:', error.message);
-        if (error.message.includes('SQLITE_CONSTRAINT: UNIQUE')) {
+        if (error.message.includes('unique constraint') || error.message.includes('duplicate key')) {
             return res.status(409).json({ error: 'Task with this title already exists' });
         }
         res.status(500).json({ error: 'Task update failed' });
