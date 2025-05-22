@@ -43,7 +43,7 @@ async function initDb() {
 
       console.log('initDb: 3. Tasks table created and database schema initialized');
   } catch (error) {
-    console.error('initDb: Failed to create tasks table:', error.message);
+    console.error('initDb: Failed to create tasks table:' + error);
     process.exit(1);
   }
 }
