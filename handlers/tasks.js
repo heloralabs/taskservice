@@ -110,7 +110,7 @@ async function deleteTask(req, res) {
         }
         //Task with the id specified exists, now deleted it.
         await db('tasks').where({ id }).del();
-        res.status(200).json({ message: 'Task deleted' });
+        res.status(200).json({ message: `Task with id ${id} deleted` });
     } catch (error) {
         res.status(500).json({ error: 'Task deletion failed' });
     }
