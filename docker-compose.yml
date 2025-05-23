@@ -4,7 +4,7 @@ services:
       - .env
     build: .
     ports:
-      - "3001:3001"
+      - "${APP_HOST_PORT:-3000}:3000"
     depends_on:
       postgres:
         condition: service_healthy
