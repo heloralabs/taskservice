@@ -14,7 +14,7 @@ async function getAllTasks(req, res) {
         childLogger.info('getAllTasks: success')
         res.status(200).json(tasks);
     } catch (error) {
-        childLogger.error('getAllTasks: Failed to get all tasks', error)
+        childLogger.error('getAllTasks: Failed to get all tasks ' + error);
         res.status(500).json({ error: 'Failed to retrieve tasks' });
     }
 }
@@ -22,8 +22,10 @@ async function getAllTasks(req, res) {
 async function createTask(req, res) {
     const { title, description, status } = req.body;
     const childLogger = logger.child({ request: "createTask" })
-    if (!title) {
 
+    //the title filed must be present as it also sets the grounds for uniqueness for this
+    //task object.
+    if (!title) {
         childLogger.log('Missing title')
         return res.status(400).json({ error: 'Title is required' });
     }
@@ -43,21 +45,21 @@ async function createTask(req, res) {
         createdAt: timestamp,
         updatedAt: timestamp
     };
-    childLogger.info('inserting task:',task)
+    childLogger.info('inserting task: ' + task)
 
     try {
         
         const [{ id }] = await db('tasks').insert(task).returning('id');
         const createdTask = await db('tasks').where({ id }).first();
         if (!createdTask) {
-            childLogger.warn('Failed to retrieve created task for id',id)
+            childLogger.warn('Failed to retrieve created task for id ' + id + '. Something went wrong!');
             return res.status(500).json({ error: 'Failed to retrieve created task' });
         }
 
-        childLogger.info('Task created with id: ', id);
+        childLogger.info('Task created with id: ' + id);
         res.status(201).json(createdTask);
     } catch (error) {
-        childLogger.error('Task creation failed: ', new Error(error))
+        childLogger.error('Task creation failed: ' + new Error(error))
         if (error.message.includes('unique constraint') || error.message.includes('duplicate key')) {
             return res.status(409).json({ error: 'Task with this title already exists' });
         }
