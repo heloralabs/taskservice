@@ -22,7 +22,11 @@ const options = {
 }
 
 const swaggerApiSpec = swaggerJsDocs(options);
+
+// Serve both the swagger json spec and the interactive swagger-ui
+app.get('/swagger-ui/swagger.json', (req, res) => res.json(swaggerApiSpec));
 app.use('/swagger-ui', swaggerUi.serve, swaggerUi.setup(swaggerApiSpec));
+
 
 /**
  * 
