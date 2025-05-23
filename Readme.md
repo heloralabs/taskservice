@@ -4,7 +4,7 @@ This is a lightweight task management microservice built with Node.js, Express.j
 ### Prerequisites
 To build and run the application locally, you must make sure that Docker is setup on your machine. You can find more information on it from, https://www.docker.com/.
 
-You must also have access to git installation, if you wish to download the source code using GIT cli. You may also chose to download the files manually through zip as well from the repository.
+Ensure you have a git installation if you wish to download the source code using GIT cli. You may also chose to download the files manually through zip as well from the repository.
 
 ### Instructions on running locally using docker:
 
@@ -22,7 +22,24 @@ docker-compose up
 ```
 http://localhost:3000/swagger-ui/
 ```
-4. You may also use the curl commands to test out the APIs; here are some examples:
+
+#### The docker-compose will download the postgres image and the node images as needed and setup the containers locally and run them. You will notice that the postgres container runs first and then there's a 5 s delay to start the app container. This is intentional to make sure the database container/server is setup and up and running. I ran into synchronization issues where the app started before the db container was up, preventing the creating of tables successfully. 
+
+### Testing the application using cURL
+
+All RESTful endpoints are follows:
+
+```
+GET: localhost:3000/tasks/getAll
+GET: localhost:3000/tasks/:id
+DELETE: localhost:3000/tasks/:id
+POST: localhost:3000/tasks/
+PUT: localhost:3000/tasks/:id
+```
+
+** Note: The :id field must be a positive integer. There's a middleware validation provided in the app that validates this field input before fulfilling this request. A 404 Bad Request is returned if it's an invalid entry.
+
+You may also use the curl commands to test out the APIs; here are some examples:
 
 Get all tasks:
 
@@ -33,7 +50,7 @@ curl --location 'localhost:3000/tasks/getAll'
 Create a task: 
 
 ``
-curl --location 'localhost:3000/tasks/' \
+curl --location --request POST 'localhost:3000/tasks/' \
 --header 'Content-Type: application/json' \
 --data '{
     "title": "Task 1",

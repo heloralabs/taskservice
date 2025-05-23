@@ -27,6 +27,18 @@ const swaggerApiSpec = swaggerJsDocs(options);
 app.get('/swagger-ui/swagger.json', (req, res) => res.json(swaggerApiSpec));
 app.use('/swagger-ui', swaggerUi.serve, swaggerUi.setup(swaggerApiSpec));
 
+// Middleware to validate :id parameter
+
+const validateId = (req, res, next) => {
+  const id = parseInt(req.params.id);
+  if (!Number.isInteger(id) || id <= 0) {
+    logger.warn('task :id provided must be a positive integer');
+    return res.status(400).json({ error: 'task :id provided must be a positive integer' });
+  }
+  req.params.id = id; // Ensure id is an integer
+  next();
+};
+
 
 /**
  * 
@@ -176,7 +188,7 @@ app.post('/tasks', tasksHandler.createTask);
  *              $ref: '#/components/schemas/Error'
  *      
  */
-app.get('/tasks/:id', tasksHandler.getTaskById)
+app.get('/tasks/:id', validateId, tasksHandler.getTaskById)
 
 
 /**
@@ -216,7 +228,7 @@ app.get('/tasks/:id', tasksHandler.getTaskById)
  *              $ref: '#/components/schemas/Error'
  *      
  */
-app.delete('/tasks/:id', tasksHandler.deleteTask);
+app.delete('/tasks/:id', validateId, tasksHandler.deleteTask);
 
 /**
  * @openapi
@@ -262,9 +274,9 @@ app.delete('/tasks/:id', tasksHandler.deleteTask);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-app.put('/tasks/:id', tasksHandler.updateTask);
+app.put('/tasks/:id', validateId, tasksHandler.updateTask);
 
-// Centralized Error Handling (Example)
+// Centralized error handling
 app.use((err, req, res, next) => {
   logger.error(new Error(err.stack));
   res.status(500).send('Server internal error - ' + err);
