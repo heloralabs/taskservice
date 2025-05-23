@@ -46,7 +46,9 @@ You may also use the curl commands to test out the APIs; here are some examples:
 Get all tasks:
 
 ``
-curl --location 'localhost:3000/tasks/getAll'
+curl -X 'GET' \
+  'http://localhost:3000/tasks/getAll' \
+  -H 'accept: */*'
 ``
 
 Create a task: 
