@@ -28,7 +28,6 @@ app.get('/swagger-ui/swagger.json', (req, res) => res.json(swaggerApiSpec));
 app.use('/swagger-ui', swaggerUi.serve, swaggerUi.setup(swaggerApiSpec));
 
 // Middleware to validate :id parameter
-
 const validateId = (req, res, next) => {
   const id = parseInt(req.params.id);
   if (!Number.isInteger(id) || id <= 0) {
@@ -47,6 +46,8 @@ const validateId = (req, res, next) => {
  *  schemas:
  *    Task:
  *      type: object
+ *      required:
+ *        - title
  *      properties:
  *        id:
  *          type: integer
@@ -67,6 +68,8 @@ const validateId = (req, res, next) => {
  * 
  *    CreateTask:
  *      type: object
+ *      required:
+ *        - title
  *      properties:
  *        title:
  *          type: string
@@ -76,7 +79,6 @@ const validateId = (req, res, next) => {
  *        status:
  *          type: string
  *          enum: [pending,completed]
- *        required: [title]
  * 
  *    UpdateTask:
  *      type: object

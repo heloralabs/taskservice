@@ -39,6 +39,8 @@ PUT: localhost:3000/tasks/:id
 
 ** Note: The :id field must be a positive integer. There's a middleware validation provided in the app that validates this field input before fulfilling this request. A 404 Bad Request is returned if it's an invalid entry.
 
+Recommendations: There may be a need to add further validations to prevent SQL injections. In a full product, these should be a high priority and to add any additional validations to avoid corrupting the database, or hijacking the application. 
+
 You may also use the curl commands to test out the APIs; here are some examples:
 
 Get all tasks:
@@ -50,36 +52,44 @@ curl --location 'localhost:3000/tasks/getAll'
 Create a task: 
 
 ``
-curl --location --request POST 'localhost:3000/tasks/' \
---header 'Content-Type: application/json' \
---data '{
-    "title": "Task 1",
-    "description": "Some description",
-    "status": ""
+curl -X 'POST' \
+  'http://localhost:3000/tasks' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "title": "Title of task 1",
+  "description": "Desc of task",
+  "status": "pending"
 }'
 ``
 
 Get task by id:
 
 ``
-curl --location 'localhost:3000/tasks/1'
+curl -X 'GET' \
+  'http://localhost:3000/tasks/2' \
+  -H 'accept: application/json'
 ``
 
 Delete a task:
 
 ``
-curl --location --request DELETE 'localhost:3000/tasks/1'
+curl -X 'DELETE' \
+  'http://localhost:3000/tasks/1' \
+  -H 'accept: application/json'
 ``
 
 Update a task:
 
 ``
-curl --location --request PUT 'localhost:3000/tasks/1' \
---header 'Content-Type: application/json' \
---data '{
-    "title": "Task 1",
-    "description": "Updating task 1",
-    "status": "completed"
+curl -X 'PUT' \
+  'http://localhost:3000/tasks/1' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "title": "Task 1",
+  "description": "Description 1 value",
+  "status": "pending"
 }'
 ``
 
