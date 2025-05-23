@@ -1,5 +1,5 @@
 ## Task Microservice
-This is a lightweight task management microservice built with Node.js, Express.js, Knex.js and PostgreSQL. The service provides RESTful APIs to perform CRUD operations on a Task object. Additionally, the project uses Docker and the API documentation can be viewed and interacted using a Swagger UI.
+This is a lightweight task management microservice built with Node.js, Express.js, Knex.js and PostgreSQL (all open-source projects). The service provides RESTful APIs to perform CRUD operations on a Task object. Additionally, the project uses Docker and the API documentation can be viewed and interacted using a Swagger UI.
 
 ### Prerequisites
 To build and run the application locally, you must make sure that Docker is setup on your machine. You can find more information on it from, https://www.docker.com/.
@@ -101,11 +101,13 @@ As mentioned earlier, the applicaiton is built as Node.js app, and has the follo
 ### Node.js/Express.js
 This is a convenational application that showcases the ability of this framework to manage CRUD operations while handling significant loads. Express seemed to be a reasonable choice based on the requirements, and is light weight enough to handle this traffic. There are other considerations, such as using Fastify.js as that would've handled a larger amount of traffic. However, for this exercise, Express (also as being most familiar with), was the choice. I used the alpine node image to reduce the size of the container.
 
-In the code, you will notice a hiearchy structure of 
+A conventional pattern in Node.js is to use the Router. This allows you to route the incoming requests to specif "controller" where the logic would be served. However, this is more useful when an service has multiple areas of management; for example, it may handle static objects, might have multiple "services" in the app. In the implemention provided, I did not use this pattern, and rather used a handler to remove the business logic from the main entry of the app, ``server.js``, file. This simplifies the logic and makes it more manageable. Where all the tasks requests coming in get handled by the tasks module. 
+
+Additionally, I also kept all of the swagger/openapi definitions in the ``server.js`` file to keep the documentation in one area and easy to reference/manage. This makes it easy to ensure that only those services being served are the ones being documented, and only one file would need replacement.
 
 ### PostgreSQL as the database
 
-Initially, I had used SQLite as the preferred persistent storage, however, as the requirement suggested to use docker-compose and demonstrate using a more robust database, I chose PostgreSQL. PG is an industry standard database that is feature rich and handles concurrency very well. This application's simple requirement would've sufficed with SQLite and that could also have run in it's own separate container. 
+Initially, I had used SQLite as the preferred persistent storage, however, as the requirement suggested to use docker-compose and demonstrate using a more robust database, I chose PostgreSQL. PG is an industry standard database that is feature rich and handles concurrency very well. This application's simple requirement would've sufficed with SQLite and that could also have run in it's own separate container. Any industry standard database could've been used, however, if the requirements changed, then other databases could've been assessed. For example, if storing logs was a requirement, then I would prefer using a NoSQL db such as MongoDB. However, I do know that PG handles Geospatial data very well, so it could be a good preference to stay with it. 
 
 - **PostgreSQL**: Chosen for reliability and Knex.js compatibility.
 - **Schema**:
@@ -116,6 +118,8 @@ Initially, I had used SQLite as the preferred persistent storage, however, as th
   - `createdAt`, `updatedAt`: `timestamp`, not nullable.
 - **Default Values**: Using Knex.js `defaultTo('pending')` for `status` to avoid application logic and let database handle this default field value. In `manager/tasks.js` the spread operator (`...(status && { status })`) omits the `status` field if it's not provided.
 - **Initialization**: `db.js` creates `tasks` table on startup. We are not dropping tables so that it may stay perstinent when the docker is stopped and restarted. 
+
+In the Docker-compose file you will notice that there's a volume attached to the postgres definitions. This volume provided is intentional so that when the containers are restarted, the database is not deleted, and reset. The data will remain persistent until the ``postgres_data/`` folder is not manually deleted in the home location.
 
 
 
