@@ -4,14 +4,30 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - DB_HOST=host.docker.internal
-      - DB_PORT=5433
+      - DB_HOST=postgres
+      - DB_PORT=5432
       - DB_USER=postgres
-      - DB_PASSWORD=T3mp0r4l
+      - DB_PASSWORD=postgres
       - DB_NAME=tasks
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - app-network
-
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=tasks
+    # No volumes to ensure fresh database each run
+    networks:
+      - app-network
+    healthcheck:
+        test: ["CMD-SHELL", "pg_isready -U postgres"]
+        interval: 5s
+        timeout: 5s
+        retries: 5
 networks:
   app-network:
     driver: bridge

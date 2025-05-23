@@ -5,7 +5,7 @@ const swaggerJsDocs = require('swagger-jsdoc');
 const packageJson = require('./package.json')
 
 const app = express();
-
+const logger = require('./utils/logger')
 // Middleware
 app.use(express.json());
 
@@ -22,7 +22,7 @@ const options = {
 }
 
 const swaggerApiSpec = swaggerJsDocs(options);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerApiSpec));
+app.use('/swagger-ui', swaggerUi.serve, swaggerUi.setup(swaggerApiSpec));
 
 /**
  * 
@@ -261,12 +261,12 @@ app.put('/tasks/:id', tasksHandler.updateTask);
 
 // Centralized Error Handling (Example)
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  logger.error(new Error(err.stack));
   res.status(500).send('Server internal error - ' + err);
 });
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  logger.info(`Server running on port ${PORT}`);
 });

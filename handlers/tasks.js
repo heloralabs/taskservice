@@ -3,30 +3,35 @@ const STATUS = {
     PENDING: "pending",
     COMPLETED: "completed"
 }
+const logger = require('../utils/logger')
 
 async function getAllTasks(req, res) {
+    const childLogger = logger.child({
+        request: "getAllTasks"
+    })
     try {
         const tasks = await db('tasks').select();
+        childLogger.info('getAllTasks: success')
         res.status(200).json(tasks);
     } catch (error) {
-        console.error('getAllTasks: Failed to get all tasks', error.message);
+        childLogger.error('getAllTasks: Failed to get all tasks', error)
         res.status(500).json({ error: 'Failed to retrieve tasks' });
     }
 }
 
 async function createTask(req, res) {
     const { title, description, status } = req.body;
-
+    const childLogger = logger.child({ request: "createTask" })
     if (!title) {
 
-        console.log('createTask: Missing title');
+        childLogger.log('Missing title')
         return res.status(400).json({ error: 'Title is required' });
     }
 
     //do a check on the status field. The only values allowed are 'pending','completed'
     if (status && ![STATUS.PENDING, STATUS.COMPLETED].includes(status)) {
         //return an error if the field is neither of the expected values.
-        console.log('createTask: status field is invalid:', status);
+        childLogger.warn('status field is invalid:',status)
         return res.status(400).json({ error: 'Status must be "pending" or "completed"' });
     }
 
@@ -34,28 +39,25 @@ async function createTask(req, res) {
     const task = {
         title,
         description: description || '',
-        //set the default to 'pending' if value does not exist or is empty
-        status: status || STATUS.PENDING,
+        ...(status && { status }), // Only include status if provided
         createdAt: timestamp,
         updatedAt: timestamp
     };
+    childLogger.info('inserting task:',task)
 
-    console.log('createTask: inserting task:', task);
     try {
-
         
         const [{ id }] = await db('tasks').insert(task).returning('id');
         const createdTask = await db('tasks').where({ id }).first();
-        console.log('createTask: ', createdTask);
-
         if (!createdTask) {
-            console.warn('createTask: Failed to retrieve created task for id:', id);
+            childLogger.warn('Failed to retrieve created task for id',id)
             return res.status(500).json({ error: 'Failed to retrieve created task' });
         }
-        console.log('createTask: task created with id: ', id);
+
+        childLogger.info('Task created with id: ', id);
         res.status(201).json(createdTask);
     } catch (error) {
-        console.error('createTask: Error message: ', error.message)
+        childLogger.error('Task creation failed: ', new Error(error))
         if (error.message.includes('unique constraint') || error.message.includes('duplicate key')) {
             return res.status(409).json({ error: 'Task with this title already exists' });
         }
@@ -65,14 +67,16 @@ async function createTask(req, res) {
 
 async function getTaskById(req, res) {
     const { id } = req.params;
+    const childLogger = logger.child({ request: `getTaskById id[${id}]` });
     try {
         const task = await db('tasks').where({ id }).first();
         if (!task) {
+            childLogger.warn('Task not found');
             return res.status(404).json({ error: 'Task not found' });
         }
         res.status(200).json(task);
     } catch (error) {
-        console.error('getTaskById: Error:', error.message);
+        childLogger.error('Error', error.message)
         res.status(500).json({ error: 'Failed to retrieve task' });
     }
 }
@@ -80,14 +84,17 @@ async function getTaskById(req, res) {
 async function updateTask(req, res) {
     const { id } = req.params;
     const { title, description, status } = req.body;
+    const childLogger = logger.child({ request: `updateTask id[${id}]` })
 
     //Validate that at least one field available for updating.
     if (!title && description === undefined && !status) {
+        childLogger.warn('At least one field (title, description, status) is required');
         return res.status(400).json({ error: 'At least one field (title, description, status) is required' });
     }
 
     //Similar to create task, the status field value must be either pending/completed.
     if (status && ![STATUS.PENDING, STATUS.COMPLETED].includes(status)) {
+        childLogger.warn('Status must be "pending" or "completed"');
         return res.status(400).json({ error: 'Status must be "pending" or "completed"' });
     }
     try {
@@ -95,6 +102,7 @@ async function updateTask(req, res) {
 
         //check if the provided ID exists in the table
         if (!task) {
+            childLogger.warn('Task not found');
             return res.status(404).json({ error: 'Task not found' });
         }
         const updates = {};
@@ -104,9 +112,10 @@ async function updateTask(req, res) {
         updates.updatedAt = new Date().toISOString();
         await db('tasks').where({ id }).update(updates);
         const updatedTask = await db('tasks').where({ id }).first();
+        childLogger.info('Updated task success')
         res.status(200).json(updatedTask);
     } catch (error) {
-        console.error('updateTask: Error:', error.message);
+        childLogger.error('Error:', new Error(error.message));
         if (error.message.includes('unique constraint') || error.message.includes('duplicate key')) {
             return res.status(409).json({ error: 'Task with this title already exists' });
         }
@@ -116,16 +125,21 @@ async function updateTask(req, res) {
 
 async function deleteTask(req, res) {
     const { id } = req.params;
+    const childLogger = logger.child({ request: `deleteTask id[${ id }]` })
+
     try {
         const task = await db('tasks').where({ id }).first();
         //First do a check to see if the task is found
         if (!task) {
+            childLogger.warn('Task not found')
             return res.status(404).json({ error: 'Task not found' });
         }
         //Task with the id specified exists, now deleted it.
         await db('tasks').where({ id }).del();
+        childLogger.info('Task deleted')
         res.status(200).json({ message: `Task with id ${id} deleted` });
     } catch (error) {
+        childLogger.error('Task deletion failed', new Error(error.message));
         res.status(500).json({ error: 'Task deletion failed' });
     }
 }
