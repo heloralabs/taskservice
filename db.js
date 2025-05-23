@@ -18,10 +18,6 @@ async function initDb() {
 
   try {
 
-    childLogger.info('1. drop tasks table if exists');
-    // Drop the table if it exists
-    await knex.schema.dropTableIfExists('tasks');
-
     /**
      * Adhering to the descriptions provided in the requirements:
      * Each task should have:
@@ -35,17 +31,23 @@ async function initDb() {
      * Additionally, Tasks must be unique within the system; hence, adding 
      * a uniqueness to the title.
      */
-    childLogger.info('2. Create the table');
-    await knex.schema.createTable('tasks', (table) => {
-      table.specificType('id', 'serial').primary();
-      table.string('title').notNullable().unique();
-      table.string('description');
-      table.string('status').notNullable().defaultTo('pending');
-      table.string('createdAt').notNullable();
-      table.string('updatedAt').notNullable();
-    });
+    childLogger.info('Initialize the database and schemas');
+    const tableExists = await knex.schema.hasTable('tasks');
+    if (!tableExists) {
+      childLogger.info('Create the tasks table');
+      await knex.schema.createTable('tasks', (table) => {
+        table.specificType('id', 'serial').primary();
+        table.string('title').notNullable().unique();
+        table.string('description');
+        table.string('status').notNullable().defaultTo('pending');
+        table.string('createdAt').notNullable();
+        table.string('updatedAt').notNullable();
+      });
 
-    childLogger.info('3. Tasks table created and database schema initialized');
+      //Double check if table is now created successfully
+      const tableCreated = await knex.schema.hasTable('tasks');
+      if (tableCreated) childLogger.info('Tasks table created successfully');
+    }
   } catch (error) {
     childLogger.error('Failed to create tasks table:', new Error(error));
     process.exit(1);

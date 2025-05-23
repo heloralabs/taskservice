@@ -17,8 +17,8 @@ services:
     # The application drops tables before creating, so no need to 
     # create volumes. If the requirement changes, then uncomment 
     # the following volume definitions.
-    # volumes:
-    #   - ./postgres_data:/var/lib/postgresql/data
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
     networks:
       - app-network
     healthcheck:

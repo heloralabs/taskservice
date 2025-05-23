@@ -105,7 +105,8 @@ app.get('/tasks/getAll', tasksHandler.getAllTasks);
  * @openapi
  * /tasks:
  *   post:
- *     summary: Create a task
+ *     summary: Create a new task
+ *     description: Create a new task. The title of the task must be unique.
  *     requestBody:
  *       required: true
  *       content:
@@ -145,7 +146,7 @@ app.post('/tasks', tasksHandler.createTask);
  * @openapi
  * /tasks/{id}:
  *   get:
- *    summary: Represents a task
+ *    summary: Retrieve a task given id
  *    description: This is unique task resource identified by a numeric 'id'.
  *    parameters:
  *      - name: id
@@ -182,7 +183,7 @@ app.get('/tasks/:id', tasksHandler.getTaskById)
  * @openapi
  * /tasks/{id}:
  *   delete:
- *    summary: Retrieve a task
+ *    summary: Delete a task given id
  *    description: This deletes a unique task resource identified by a numeric 'id'.
  *    parameters:
  *      - name: id
@@ -221,7 +222,7 @@ app.delete('/tasks/:id', tasksHandler.deleteTask);
  * @openapi
  * /tasks/{id}:
  *   put:
- *     summary: Update a task
+ *     summary: Update a task given id
  *     parameters:
  *      - name: id
  *        in: path
